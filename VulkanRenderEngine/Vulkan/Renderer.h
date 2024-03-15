@@ -18,8 +18,8 @@ namespace Giang
 		void Render();
 		void Update(Timestep ts);
 
-		void SetImageLayout(vk::Image image, vk::ImageAspectFlags aspectMask, vk::ImageLayout oldImageLayout, vk::ImageLayout newLayout,
-			vk::AccessFlagBits srcAccessMask, vk::CommandBuffer& commandBuffer);
+		static void SetImageLayout(vk::Image image, vk::ImageAspectFlags aspectMask, vk::ImageLayout oldImageLayout, vk::ImageLayout newLayout,
+			vk::ImageSubresourceRange subresourceRange, vk::CommandBuffer& commandBuffer);
 
 		Device* GetDevice() { return deviceObj; }
 		Swapchain* GetSwapchain() { return swapchainObj; }
@@ -39,9 +39,13 @@ namespace Giang
 		void CreateRenderpass(bool includeDepth, bool clear = true);
 		void CreateFrameBuffer(bool includeDepth, bool clear = true);
 		void CreateVertexBuffer();
+		void CreateTexture();
 		void CreateShader();
 		void CreatePipelineStateManagement();
 		void CreateDescriptors();
+		void CreateSampler(Ref<Texture>& texture);
+		void CreateImageView(Ref<Texture>& texture);
+		void CreateTextureOptimal(const char* filename, TextureData* texture, vk::ImageUsageFlags imageUsageFlags = vk::ImageUsageFlagBits::eSampled, vk::Format format = vk::Format::eR8G8B8A8Unorm);
 
 		void DestroyRenderpass();
 		void DestroyFrameBuffers();
@@ -54,8 +58,11 @@ namespace Giang
 		void DestroyPresentationWindow();
 
 		// Renderer 2D
+	private:
 		static void Init2DData();
+	public:
 		static void DrawQuad(const glm::vec3& position, const glm::vec4& color);
+		static void DrawQuad(const glm::vec3& position, const Ref<Texture>& texture, const glm::vec4 tintColor = glm::vec4(1.0f));
 
 	public:
 		// Data structure used for depth image
@@ -66,7 +73,7 @@ namespace Giang
 			vk::ImageView view;
 		}Depth;
 
-		vk::CommandBuffer cmdDepthImage, cmdVertexBuffer;
+		vk::CommandBuffer cmdDepthImage, cmdVertexBuffer, cmdTexture;
 		vk::CommandPool cmdPool;
 
 		int width, height;
@@ -83,6 +90,7 @@ namespace Giang
 		std::vector<Drawable*> drawables;
 		Ref<Shader> shaderObj;
 		Pipeline pipelineObj;
+
 
 	};
 }

@@ -11,6 +11,8 @@ namespace Giang
 	Drawable::Drawable(Renderer* parent)
 	{
 		memset(&m_VertexBufferData, 0, sizeof(m_VertexBufferData));
+		memset(&descImageInfos, 0, sizeof(descImageInfos));
+		memset(writes, 0, sizeof(writes));
 		rendererObj = parent;
 
 		Device* deviceObj = Application::GetInstance()->DeviceObj;
@@ -40,7 +42,7 @@ namespace Giang
 			CommandBufferMgr::allocCommandBuffer(&deviceObj->LogicalDevice, *rendererObj->GetCommandPool(), &CommandDraws[i]);
 
 			//Create the renderpass
-			RecordCommandBuffer(i, CommandDraws[i]);
+			//RecordCommandBuffer(i, CommandDraws[i]);
 
 		}
 	}
@@ -305,7 +307,7 @@ namespace Giang
 		{
 			layoutBindings[1].binding = 1;
 			layoutBindings[1].descriptorType = vk::DescriptorType::eCombinedImageSampler;
-			layoutBindings[1].descriptorCount = 1;
+			layoutBindings[1].descriptorCount = m_TextureSlots;
 			layoutBindings[1].stageFlags = vk::ShaderStageFlagBits::eFragment;
 			layoutBindings[1].pImmutableSamplers = NULL;
 		}
@@ -346,7 +348,7 @@ namespace Giang
 		if (useTexture)
 		{
 			descriptorTypePool[1].type = vk::DescriptorType::eCombinedImageSampler;
-			descriptorTypePool[1].descriptorCount = 1;
+			descriptorTypePool[1].descriptorCount = m_TextureSlots;
 		}
 
 		vk::DescriptorPoolCreateInfo createInfo = {};
@@ -369,59 +371,6 @@ namespace Giang
 		//CreateUniformBuffer();
 	}
 
-	void Drawable::CreateUniformBuffer()
-	{
-		/*Projection = glm::perspective(glm::radians(45.0f), 1.f, .1f, 100.f);
-		View = glm::lookAt(
-			glm::vec3(10, 3, 10),
-			glm::vec3(0, 0, 0),
-			glm::vec3(0, -1, 0)
-		);
-		Model = glm::mat4(1.0f);
-
-		MVP = Projection * View * Model;
-
-		vk::BufferCreateInfo createInfo;
-		createInfo.usage = vk::BufferUsageFlagBits::eUniformBuffer;
-		createInfo.size = sizeof(MVP);
-		createInfo.queueFamilyIndexCount = 0;
-		createInfo.pQueueFamilyIndices = NULL;
-		createInfo.sharingMode = vk::SharingMode::eExclusive;
-		createInfo.flags = vk::BufferCreateFlags();
-
-		try
-		{
-			m_UniformData.Buffer = deviceObj->LogicalDevice.createBuffer(createInfo);
-		}
-		catch (vk::SystemError err)
-		{
-			std::cout << "Failed to create uniform buffer!\n";
-		}
-
-		vk::MemoryRequirements memoryRequirements = deviceObj->LogicalDevice.getBufferMemoryRequirements(m_UniformData.Buffer);
-		vk::MemoryAllocateInfo memAllocInfo = {};
-		memAllocInfo.memoryTypeIndex = deviceObj->MemoryTypeFromProperties(memoryRequirements.memoryTypeBits, vk::MemoryPropertyFlagBits::eHostVisible);
-		memAllocInfo.allocationSize = memoryRequirements.size;
-
-		m_UniformData.Memory = deviceObj->LogicalDevice.allocateMemory(memAllocInfo);
-
-		m_UniformData.pData = deviceObj->LogicalDevice.mapMemory(m_UniformData.Memory, 0, memoryRequirements.size);
-		memcpy(m_UniformData.pData, &MVP, sizeof(MVP));
-		m_UniformData.MappedRange.resize(1);
-		m_UniformData.MappedRange[0].memory = m_UniformData.Memory;
-		m_UniformData.MappedRange[0].offset = 0;
-		m_UniformData.MappedRange[0].size = sizeof(MVP);
-
-		deviceObj->LogicalDevice.invalidateMappedMemoryRanges(m_UniformData.MappedRange[0]);
-
-		deviceObj->LogicalDevice.bindBufferMemory(m_UniformData.Buffer, m_UniformData.Memory, 0);
-
-		m_UniformData.BufferInfo.buffer = m_UniformData.Buffer;
-		m_UniformData.BufferInfo.offset = 0;
-		m_UniformData.BufferInfo.range = sizeof(MVP);
-		m_UniformData.MemoryRequirement = memoryRequirements;*/
-	}
-
 	void Drawable::CreateDescriptorSet(bool useTexture)
 	{
 		Pipeline* pipelineObj = rendererObj->GetPipelineObject();
@@ -435,9 +384,11 @@ namespace Giang
 		descriptorSets.resize(1);
 
 		descriptorSets = deviceObj->LogicalDevice.allocateDescriptorSets(descAllocInfo);
+		UpdateDescriptorSet(useTexture, 1);
+	}
 
-		vk::WriteDescriptorSet writes[2];
-		memset(&writes, 0, sizeof(writes));
+	void Drawable::UpdateDescriptorSet(bool useTexture, uint32_t textureCount)
+	{
 		writes[0].dstSet = descriptorSets[0];
 		writes[0].descriptorCount = 1;
 		writes[0].descriptorType = vk::DescriptorType::eUniformBuffer;
@@ -448,15 +399,17 @@ namespace Giang
 
 		if (useTexture)
 		{
+			writes[1].sType = vk::StructureType::eWriteDescriptorSet;
 			writes[1].dstSet = descriptorSets[0];
 			writes[1].dstBinding = 1;
-			writes[1].descriptorCount = 1;
+			writes[1].descriptorCount = textureCount;
 			writes[1].descriptorType = vk::DescriptorType::eCombinedImageSampler;
-			writes[1].pImageInfo = NULL;
+			writes[1].pImageInfo = descImageInfos.data();
 			writes[1].dstArrayElement = 0;
 		}
 
 		deviceObj->LogicalDevice.updateDescriptorSets(useTexture ? 2 : 1, writes, 0, NULL);
+
 	}
 
 	void Drawable::DestroyVertexBuffer()

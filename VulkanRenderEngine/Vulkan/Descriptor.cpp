@@ -13,7 +13,7 @@ namespace Giang
 	{
 		CreateDescriptorResources();
 		CreateDescriptorPool(useTexture);
-		CreateDescriptorSet(useTexture);
+		//CreateDescriptorSet(useTexture);
 
 	}
 

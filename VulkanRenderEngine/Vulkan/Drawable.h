@@ -3,6 +3,7 @@
 #include "VertexInputDescription.h"
 #include "UniformBuffer.h"
 #include "Timestep.h"
+#include "Texture.h"
 namespace Giang
 {
 	class Renderer;
@@ -22,6 +23,7 @@ namespace Giang
 		void CreateDescriptorResources() override;
 		void CreateUniformBuffer();
 		void CreateDescriptorSet(bool useTexture) override;
+		void UpdateDescriptorSet(bool useTexture, uint32_t textureCount);
 
 		void DestroyVertexBuffer();
 		void DestroyVertexIndex();
@@ -49,7 +51,8 @@ namespace Giang
 		void SetUniformBuffer(Ref<UniformBuffer> uniformBuffer) { m_UniformBuffer = uniformBuffer; }
 
 		void SetIndexCount(uint32_t indexCount) { m_IndexCount = indexCount; }
-
+		void SetTextureSlots(uint32_t textureSlots) { m_TextureSlots = textureSlots; }
+		void SetDescriptorImageInfo(std::array<vk::DescriptorImageInfo, 32>& descInfo) { descImageInfos = descInfo; }
 		struct
 		{
 			vk::Buffer Buffer;
@@ -64,7 +67,6 @@ namespace Giang
 			vk::DescriptorBufferInfo BufferInfo;
 		} m_VertexIndexData;
 
-		
 		Ref<VertexInputDescription> m_VertexInputDescription;
 		Ref<UniformBuffer> m_UniformBuffer;
 
@@ -82,6 +84,10 @@ namespace Giang
 		vk::Semaphore presentCompleteSemaphore;
 		vk::Semaphore drawingCompleteSemaphore;
 
+		vk::WriteDescriptorSet writes[2];
+		std::array<vk::DescriptorImageInfo, 32> descImageInfos;
+
 		uint32_t m_IndexCount = 0;
+		uint32_t m_TextureSlots;
 	};
 }

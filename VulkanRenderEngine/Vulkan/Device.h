@@ -20,6 +20,7 @@ namespace Giang
 		std::optional<uint32_t>							   GraphicsQueueIndex;
 		std::optional<uint32_t>							   graphicsQueueWithPresentIndex;
 		uint32_t							   queueFamilyCount;
+		vk::PhysicalDeviceFeatures deviceFeatures;
 
 	public:
 		void ChoosePhysicalDevice(Instance& instance);

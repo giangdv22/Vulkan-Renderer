@@ -47,8 +47,11 @@ namespace Giang
 			queuePriority
 		);
 
-		vk::PhysicalDeviceFeatures deviceFeatures = vk::PhysicalDeviceFeatures();
+		deviceFeatures = vk::PhysicalDeviceFeatures();
 		deviceFeatures.depthClamp = true;
+		vk::PhysicalDeviceFeatures setEnabledFeatures = { VK_FALSE };
+		setEnabledFeatures.samplerAnisotropy = deviceFeatures.samplerAnisotropy;
+		setEnabledFeatures.depthClamp = deviceFeatures.depthClamp;
 		std::vector<const char*> enabledLayers;
 		enabledLayers.push_back("VK_LAYER_KHRONOS_validation");
 		std::vector<const char*> enabledExtensions;
@@ -58,7 +61,7 @@ namespace Giang
 			1, &queueCreateInfo,
 			enabledLayers.size(), enabledLayers.data(),
 			enabledExtensions.size(), enabledExtensions.data(),
-			&deviceFeatures
+			&setEnabledFeatures
 		);
 
 		try
